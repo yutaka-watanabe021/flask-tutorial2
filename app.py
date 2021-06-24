@@ -2,6 +2,13 @@ from flask import Flask, render_template, request
 import random
 app = Flask(__name__)
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+API_KEY = os.environ.get("API_KEY")
+print("API_KEY=",API_KEY)
+
 @app.route('/')
 def hello():
     unsei_list = ["大吉", "中吉", "小吉"]
