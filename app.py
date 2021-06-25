@@ -1,13 +1,17 @@
 from flask import Flask, render_template, request
 import random
-app = Flask(__name__)
-
+import urllib.request, urllib.parse
+import json
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
 API_KEY = os.environ.get("API_KEY")
 print("API_KEY=",API_KEY)
+
+FORECAST_API = 'https://api.openweathermap.org/data/2.5/forecast'
+
+app = Flask(__name__)
 
 @app.route('/')
 def hello():
@@ -37,6 +41,32 @@ def fortune():
         ]
     
         return render_template('fortune.html', fortune_list=uranai_list)
+
+@app.route('/forecast')
+def forecast():
+    params = {
+        'appid' : API_KEY,
+        'q' : 'Tokyo',
+        'units' : 'metric'
+    }
+    url = FORECAST_API + '?' + urllib.parse.urlencode(params)
+    req = urllib.request.Request(url)
+    res = urllib.request.urlopen(req)
+    result = res.read().decode('utf-8')    
+    res.close()
+    json_body = json.loads(result)
+    
+    forecasts = []
+    for api_data in json_body["list"]:
+        forecasts.append({
+            "time": api_data["dt_txt"],
+            "temp": api_data["main"]["temp"],
+            "humidity": api_data["main"]["humidity"],
+            "pressure": api_data["main"]["pressure"],
+            "icon": api_data["weather"][0]["icon"],
+        })
+
+    return render_template('forecast.html',forecasts=forecasts)
 
 if __name__ == "__main__":
     app.run(debug=True)
